@@ -1,10 +1,15 @@
 {
   "name": "world-builder",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "D&D Worldbuilder backend",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "client": "cd map && npm start",
+    "client-admin": "cd map-admin && npm start",
+    "build-client": "cd map && npm run build && cp -r build/* ../public/map",
+    "build-client-admin": "cd map-admin && npm run build && cp -r build/* ../public/map-admin"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +17,8 @@
   "dependencies": {
     "cors": "^2.8.5",
     "expres": "^0.0.5",
+    "express": "^4.19.2",
+    "mariadb": "^3.3.0",
     "mysql2": "^3.10.0"
   },
   "devDependencies": {
