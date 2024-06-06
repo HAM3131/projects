@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { HexGrid, Layout, Hexagon, Text, Pattern, Path, Hex } from 'react-hexgrid';
-import 'leaflet/dist/leaflet.css';
+import { HexGrid, Layout, Hexagon, Text } from 'react-hexgrid';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import axios from 'axios';
+import './App.css';
 
 const HexMapAdmin = () => {
   const [hexes, setHexes] = useState([]);
@@ -13,16 +14,42 @@ const HexMapAdmin = () => {
   }, []);
 
   return (
-    <div>
-      <HexGrid width={1200} height={800} viewBox="-50 -50 100 100">
-        <Layout size={{ x: 10, y: 10 }} flat={true} spacing={1.02} origin={{ x: 0, y: 0 }}>
-          {hexes.map(hex => (
-            <Hexagon key={hex.id} q={hex.x} r={hex.y} s={-hex.x - hex.y}>
-              <Text>{hex.x}, {hex.y}</Text>
-            </Hexagon>
-          ))}
-        </Layout>
-      </HexGrid>
+    <div className="map-container">
+      <TransformWrapper
+        initialScale={0.5}
+        minScale={0.2}
+        maxScale={4}
+        wheel={{ disabled: true }}
+        centerOnInit={true}
+        limitToBounds={false}
+        limitToWrapper={false}
+        pan={{
+          paddingSize: 0, // Disable padding when panning
+        }}
+      >
+        {({ zoomIn, zoomOut, centerView }) => (
+          <>
+            <div className="tools">
+              <button onClick={() => zoomIn()}>Zoom In</button>
+              <button onClick={() => zoomOut()}>Zoom Out</button>
+              <button onClick={() => centerView(0.5)}>Reset</button> {/* Reset and center */}
+            </div>
+            <div className="hexgrid-container">
+              <TransformComponent>
+                <HexGrid width={2000} height={1200} viewBox="-50 -50 100 100">
+                  <Layout size={{ x: 10, y: 10 }} flat={true} spacing={1} origin={{ x: 0, y: 0 }}>
+                    {hexes.map(hex => (
+                      <Hexagon key={hex.id} q={hex.x} r={hex.y} s={-hex.x - hex.y}>
+                        <Text>{hex.x}, {hex.y}</Text>
+                      </Hexagon>
+                    ))}
+                  </Layout>
+                </HexGrid>
+              </TransformComponent>
+            </div>
+          </>
+        )}
+      </TransformWrapper>
     </div>
   );
 };
