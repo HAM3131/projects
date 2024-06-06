@@ -8,9 +8,9 @@ app.use(cors());
 app.use(express.json());
 
 const pool = mariadb.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '',
+  host: '127.0.0.1',
+  user: 'dnd_server',
+  password: '1234',
   database: 'dnd_world',
   connectionLimit: 5
 });

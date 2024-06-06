@@ -1,5 +1,5 @@
 import React from 'react';
-import HexMapAdmin from './HexMapAdmin';
+import HexMapAdmin from './HexMapAdmin.js';
 
 const App = () => {
   return (

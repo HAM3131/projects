@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { HexGrid, Layout, Hexagon, Text, Pattern, Path, Hex } from 'react-hexgrid';
 import 'leaflet/dist/leaflet.css';
 import axios from 'axios';
 
@@ -7,30 +7,23 @@ const HexMap = () => {
   const [hexes, setHexes] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/hexes')
+    axios.get('/api/hexes')
       .then(response => setHexes(response.data))
       .catch(error => console.error('Error fetching hex data:', error));
   }, []);
 
   return (
-    <MapContainer center={[51.505, -0.09]} zoom={13} scrollWheelZoom={false}>
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      {hexes.map(hex => (
-        <Marker key={hex.id} position={[hex.x, hex.y]}>
-          <Popup>
-            {hex.history.map(entry => (
-              <div key={entry.id}>
-                <strong>Date:</strong> {entry.date}<br/>
-                <strong>Entry:</strong> {entry.entry}
-              </div>
-            ))}
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
+    <div>
+      <HexGrid width={1200} height={800} viewBox="-50 -50 100 100">
+        <Layout size={{ x: 10, y: 10 }} flat={true} spacing={1.02} origin={{ x: 0, y: 0 }}>
+          {hexes.map(hex => (
+            <Hexagon key={hex.id} q={hex.x} r={hex.y} s={-hex.x - hex.y}>
+              <Text>{hex.x}, {hex.y}</Text>
+            </Hexagon>
+          ))}
+        </Layout>
+      </HexGrid>
+    </div>
   );
 };
 
