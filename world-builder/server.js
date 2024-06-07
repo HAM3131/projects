@@ -47,7 +47,6 @@ app.put('/api/hexes/:id', async (req, res) => {
   }
 });
 
-
 // Serve static files for user and admin interfaces
 app.use('/map', express.static(path.join(__dirname, 'public/map')));
 app.use('/map-admin', express.static(path.join(__dirname, 'public/map-admin')));
