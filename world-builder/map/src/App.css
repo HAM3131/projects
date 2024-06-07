@@ -36,3 +36,12 @@
     transform: rotate(360deg);
   }
 }
+
+.history-element {
+  padding: 1em;
+  background: #fff;
+  border: 1px solid #ccc;
+  margin-top: 1em;
+  max-height: 300px;
+  overflow-y: auto;
+}

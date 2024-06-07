@@ -32,7 +32,24 @@ app.get('/api/hexes', async (req, res) => {
   }
 });
 
-app.put('/api/hexes/:id', async (req, res) => {
+app.get('/api/history', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(`SELECT * FROM history WHERE x = ${req.query['hex-x']} AND y = ${req.query['hex-y']}`);
+    res.json(rows)
+  } catch (err) {
+    console.log(err);
+  } finally {
+    if (conn) conn.end();
+  }
+});
+
+
+// MODIFY PUTS FOR:
+//      - CREATE NEW DATE BEFORE/AFTER
+//      - CREATE NEW HISTORY ENTRY
+app.put('/api/history', async (req, res) => {
   const { id } = req.params;
   const { history } = req.body;
   let conn;
