@@ -8,21 +8,37 @@ const HexMap = () => {
   const [hexes, setHexes] = useState([]);
   const [history, setHistory] = useState(null);
   const [selectedHex, setSelectedHex] = useState(null);
+  var date = 2; // Set default date to the earliest possible value
 
   useEffect(() => {
-    axios.get('/api/hexes')
+    axios.get(`/api/hexes?date=${date}`)
       .then(response => setHexes(response.data))
       .catch(error => console.error('Error fetching hex data:', error));
   }, []);
 
-  const fetchHistory = (hex_x, hex_y, hexId) => {
-    axios.get(`/api/history?hex-x=${hex_x}&hex-y=${hex_y}`)
+  const fetchHistory = (hex_x, hex_y, hex_id, date_id) => {
+    axios.get(`/api/history?hex-x=${hex_x}&hex-y=${hex_y}&date=${date_id}`)
       .then(response => {
         setHistory(response.data);
-        setSelectedHex(hexId);
+        setSelectedHex({ "id": hex_id, "x": hex_x, "y": hex_y });
         document.getElementById('history-element').scrollIntoView({ behavior: 'smooth' });
       })
       .catch(error => console.error('Error fetching history data:', error));
+  };
+
+  const groupByDateValue = (history) => {
+    const grouped = {};
+    history.forEach(event => {
+      if (!grouped[event.date_value]) {
+        grouped[event.date_value] = {
+          entries: [],
+          date_id: event.date,
+          date_order: event.date_order
+        };
+      }
+      grouped[event.date_value].entries.push(event);
+    });
+    return grouped;
   };
 
   return (
@@ -39,7 +55,7 @@ const HexMap = () => {
           pan={{
             paddingSize: 0, // Disable padding when panning
           }}
-          >
+        >
           {({ zoomIn, zoomOut, centerView }) => (
             <>
               <div className="tools">
@@ -52,13 +68,13 @@ const HexMap = () => {
                   <HexGrid width={2000} height={1200} viewBox="-50 -50 100 100">
                     <Layout size={{ x: 10, y: 10 }} flat={true} spacing={1} origin={{ x: 0, y: 0 }}>
                       {hexes.map(hex => (
-                        <Hexagon 
-                        key={hex.id} 
-                          q={hex.x} 
-                          r={hex.y} 
+                        <Hexagon
+                          key={hex.id}
+                          q={hex.x}
+                          r={hex.y}
                           s={-hex.x - hex.y}
-                          onClick={() => fetchHistory(hex.x, hex.y, hex.id)}
-                          >
+                          onClick={() => fetchHistory(hex.x, hex.y, hex.id, hex.date_id)}
+                        >
                           <Text>{hex.x}, {hex.y}</Text>
                         </Hexagon>
                       ))}
@@ -73,14 +89,23 @@ const HexMap = () => {
       <div id="history-element" className="history-element">
         {history ? (
           <>
-            <h2>History for Hex {selectedHex}</h2>
-            <ul>
-              {history.map(entry => (
-                <li key={entry.id}>
-                  <strong>{entry.date}:</strong> {entry.entry}
-                </li>
+            <h2>History for X = {selectedHex['x']}, Y = {selectedHex['y']}</h2>
+            <div>
+              {Object.entries(groupByDateValue(history)).map(([date_value, group]) => (
+                <div key={date_value} className="history-date-group">
+                  <div className="date-value"
+                    title={`Date ID: ${group.date_id}, Order: ${group.date_order}`}>{date_value}</div>
+                  <div className="history-entries">
+                    {group.entries.map(event => (
+                      <div key={event.id} className="history-entry">
+                        <h3>{event.title}</h3>
+                        <p>{event.entry}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </>
         ) : (
           <p>Select a hex to view its history.</p>

@@ -23,7 +23,10 @@ app.get('/api/hexes', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-    const rows = await conn.query('SELECT * FROM hex_tiles');
+    const rows = await conn.query(
+     `SELECT * FROM hex_tiles
+      WHERE date_id = ${req.query['date']}
+     `);
     res.json(rows);
   } catch (err) {
     throw err;
@@ -36,7 +39,14 @@ app.get('/api/history', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-    const rows = await conn.query(`SELECT * FROM history WHERE x = ${req.query['hex-x']} AND y = ${req.query['hex-y']}`);
+    const rows = await conn.query(
+     `SELECT h.*, d.value as date_value, d.order as date_order FROM history h
+      JOIN dates d ON h.date = d.id 
+      WHERE x = ${req.query['hex-x']} 
+      AND y = ${req.query['hex-y']} 
+      AND d.order < ${req.query['date']}
+      ORDER BY d.order DESC
+     `);
     res.json(rows)
   } catch (err) {
     console.log(err);

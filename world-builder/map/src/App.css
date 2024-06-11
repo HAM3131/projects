@@ -42,6 +42,71 @@
   background: #fff;
   border: 1px solid #ccc;
   margin-top: 1em;
-  max-height: 300px;
+  min-height: 100vh;
+  max-height: 100vh;
   overflow-y: auto;
+  padding-bottom: 0.5em; /* Add breathing room at the bottom */
+}
+
+.history-date-group {
+  margin-bottom: 1em;
+  border: 1px solid #ccc; /* Add boundary around the group */
+  border-radius: 8px; /* Add rounded corners */
+  background: #f9f9f9; /* Background color for the group */
+  padding: 0.5em; /* Padding inside the group */
+}
+
+.date-value {
+  background: #ececec;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.5em 1em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
+  text-align: center;
+  position: relative; /* For positioning the tooltip */
+  cursor: pointer; /* Indicate it's interactive */
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 0.5em;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.date-value:hover .tooltip {
+  display: block;
+}
+
+.history-entries {
+  flex-grow: 1;
+}
+
+.history-entry {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1em;
+  margin-bottom: 1em;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.history-entry h3 {
+  margin: 0;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.history-entry p {
+  margin: 0.5em 0 0;
+  font-size: 1em;
+  color: #666;
 }
