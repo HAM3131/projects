@@ -3,7 +3,6 @@ const cors = require('cors');
 const mariadb = require('mariadb');
 const multer = require('multer');
 const fs = require('fs');
-const fs = require('fs').promises;
 const http = require('http');
 const https = require('https');
 const path = require('path');
