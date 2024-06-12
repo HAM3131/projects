@@ -48,12 +48,12 @@ app.get('/api/hexes', async (req, res) => {
       FROM hex_tiles ht
       JOIN dates d ON ht.date_id = d.id
       JOIN (
-          SELECT x_value, y_value, MAX(d.id) as max_date_id
+          SELECT x, y, MAX(d.id) as max_date_id
           FROM hex_tiles ht
           JOIN dates d ON ht.date_id = d.id
-          WHERE d.order < 5
-          GROUP BY x_value, y_value
-      ) subquery ON ht.x_value = subquery.x_value AND ht.y_value = subquery.y_value AND ht.date_id = subquery.max_date_id;
+          WHERE d.order < ${req.query['date']}
+          GROUP BY x, y
+      ) subquery ON ht.x = subquery.x AND ht.y = subquery.y AND ht.date_id = subquery.max_date_id;
      `);
     res.json(rows);
   } catch (err) {
