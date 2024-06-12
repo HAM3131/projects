@@ -17,7 +17,7 @@ const HexMap = () => {
   }, []);
 
   const fetchHistory = (hex) => {
-    axios.get(`/api/history?hex-x=${hex.x}&hex-y=${hex.y}&date=${hex.date_id}`)
+    axios.get(`/api/history?hex-x=${hex.x}&hex-y=${hex.y}&date=${date}`)
       .then(response => {
         setHistory(response.data);
         setSelectedHex({ "id": hex.id, "x": hex.x, "y": hex.y , "name": hex.name});
