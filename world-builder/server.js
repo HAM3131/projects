@@ -1,11 +1,21 @@
 const express = require('express');
 const cors = require('cors');
 const mariadb = require('mariadb');
+const fs = require('fs');
+const http = require('http');
+const https = require('https');
 const path = require('path');
 
 const app = express();
+const httpPort = 8080;
+const httpsPort = 8443;
 app.use(cors());
 app.use(express.json());
+
+const httpsOptions = {
+  key: fs.readFileSync('server.key'),
+  cert: fs.readFileSync('server.crt')
+};
 
 const pool = mariadb.createPool({
   host: '127.0.0.1',
@@ -15,8 +25,14 @@ const pool = mariadb.createPool({
   connectionLimit: 5
 });
 
-app.listen(5000, () => {
-  console.log('Server started on port 5000');
+// Create HTTP server
+http.createServer(app).listen(httpPort, () => {
+  console.log(`HTTP Server started on port ${httpPort}`);
+});
+
+// Create HTTPS server
+https.createServer(httpsOptions, app).listen(httpsPort, () => {
+  console.log(`HTTPS Server started on port ${httpsPort}`);
 });
 
 app.get('/api/hexes', async (req, res) => {
