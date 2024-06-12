@@ -103,7 +103,7 @@ app.get('/api/history', async (req, res) => {
 */
 // New route to insert or update a hex tile
 app.put('/api/hexes/set', async (req, res) => {
-  const { x, y, date_value } = req.body;
+  const { x, y, date } = req.body;
   const icon = req.body.icon || null;
   const tags = req.body.tags || null;
   const name = req.body.name || null;
@@ -117,9 +117,28 @@ app.put('/api/hexes/set', async (req, res) => {
       tags = VALUES(tags),
       name = VALUES(name)
     `;
-    await conn.query(query, [x, y, date_value, icon, tags, name]);
+    await conn.query(query, [x, y, date, icon, tags, name]);
     conn.release();
     res.status(200).send('Hex tile inserted or updated successfully.');
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// New route to remove a hex tile
+app.put('/api/hexes/remove', async (req, res) => {
+  const { x, y, date } = req.body;
+  try {
+    const conn = await pool.getConnection();
+    const query = `
+      DELETE FROM hex_tiles
+      WHERE x = ?
+      AND y = ?
+      AND date_id = ?
+    `;
+    await conn.query(query, [x, y, date]);
+    conn.release();
+    res.status(200).send('Hex tile removed successfully.');
   } catch (err) {
     res.status(500).send(err.message);
   }
