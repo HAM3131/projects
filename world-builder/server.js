@@ -111,7 +111,7 @@ app.put('/api/hexes/set', async (req, res) => {
     const conn = await pool.getConnection();
     const query = `
       INSERT INTO hex_tiles (x, y, date_id, icon, tags, name)
-      VALUES (?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
       icon = VALUES(icon),
       tags = VALUES(tags),
