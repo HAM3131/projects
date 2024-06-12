@@ -40,7 +40,7 @@ const storage = multer.diskStorage({
     });
   },
   filename: function (req, file, cb) {
-    const iconFilename = req.body.iconPath || file.originalname;
+    const iconFilename = req.body.icon_path || file.originalname;
     cb(null, iconFilename);
   }
 });
