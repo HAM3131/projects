@@ -3,6 +3,7 @@ const cors = require('cors');
 const mariadb = require('mariadb');
 const multer = require('multer');
 const fs = require('fs');
+const fs = require('fs').promises;
 const http = require('http');
 const https = require('https');
 const path = require('path');
@@ -164,17 +165,64 @@ app.put('/api/hexes/remove', async (req, res) => {
 });
 
 // New route to handle icon uploads
-app.put('/api/icon/set', upload.single('iconFile'), (req, res) => {
-  const { iconName, iconPath } = req.body;
+app.put('/api/icon/set', upload.single('iconFile'), async (req, res) => {
+  const { icon_name, icon_path } = req.body;
   const iconFile = req.file;
 
-  if (!iconName || !iconPath || !iconFile) {
+  if (!icon_name || !icon_path || !iconFile) {
     return res.status(400).send('Icon name, path, and file are required.');
   }
 
-  res.status(200).send('Icon uploaded successfully.');
+  try {
+    const conn = await pool.getConnection();
+    const query = `
+      INSERT INTO icons (name, path)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE
+      path = VALUES(path)
+    `;
+    await conn.query(query, [icon_name, icon_path]);
+    conn.release();
+    res.status(200).send('Icon uploaded successfully.');
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
+// New route to handle icon removal
+app.put('/api/icon/remove', async (req, res) => {
+  const { icon_name } = req.body;
+  let icon_path;
+
+  try {
+    const conn = await pool.getConnection();
+    const query = `
+      SELECT path FROM icons
+      WHERE name = ?
+    `;
+    const rows = await conn.query(query, [icon_name]);
+    
+    if (rows.length > 0) {
+      icon_path = rows[0].path;
+    } else {
+      conn.release();
+      return res.status(404).send('Icon not found');
+    }
+
+    const query2 = `
+      DELETE FROM icons
+      WHERE name = ?
+    `;
+    await conn.query(query2, [icon_name]);
+    conn.release();
+
+    // Remove the file
+    await fs.rm(`public/icons/${icon_path}`);
+    res.status(200).send('Icon removed successfully');
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
 
 /*
 -------------------------- STATIC FILES ---------------------------
