@@ -101,18 +101,27 @@ app.get('/api/history', async (req, res) => {
 /*
 -------------------------- API PUT REQUESTS ---------------------------
 */
-app.put('/api/history', async (req, res) => {
-  const { id } = req.params;
-  const { history } = req.body;
-  let conn;
+// New route to insert or update a hex tile
+app.put('/api/hexes/set', async (req, res) => {
+  const { x, y, date_value } = req.body;
+  const icon = req.body.icon || null;
+  const tags = req.body.tags || null;
+  const name = req.body.name || null;
   try {
-    conn = await pool.getConnection();
-    await conn.query('UPDATE hex_tiles SET history = ? WHERE id = ?', [history, id]);
-    res.json({ id, history });
+    const conn = await pool.getConnection();
+    const query = `
+      INSERT INTO hex_tiles (x, y, date_id, icon, tags, name)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+      icon = VALUES(icon),
+      tags = VALUES(tags),
+      name = VALUES(name)
+    `;
+    await conn.query(query, [x, y, date_value, icon, tags, name]);
+    conn.release();
+    res.status(200).send('Hex tile inserted or updated successfully.');
   } catch (err) {
-    throw err;
-  } finally {
-    if (conn) conn.end();
+    res.status(500).send(err.message);
   }
 });
 
