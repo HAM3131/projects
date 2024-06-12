@@ -25,6 +25,24 @@ const pool = mariadb.createPool({
   connectionLimit: 5
 });
 
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const iconPath = req.body.iconPath;
+    const uploadPath = path.join(__dirname, 'public/icons', iconPath);
+
+    // Ensure the directory exists
+    fs.mkdirSync(uploadPath, { recursive: true });
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const iconFilename = path.basename(req.body.iconPath);
+    cb(null, iconFilename);
+  }
+});
+
+const upload = multer({ storage: storage });
+
 // Create HTTP server
 http.createServer(app).listen(httpPort, () => {
   console.log(`HTTP Server started on port ${httpPort}`);
@@ -144,11 +162,25 @@ app.put('/api/hexes/remove', async (req, res) => {
   }
 });
 
+// New route to handle icon uploads
+app.put('/api/icon/set', upload.single('iconFile'), (req, res) => {
+  const { iconName, iconPath } = req.body;
+  const iconFile = req.file;
+
+  if (!iconName || !iconPath || !iconFile) {
+    return res.status(400).send('Icon name, path, and file are required.');
+  }
+
+  res.status(200).send('Icon uploaded successfully.');
+});
+
 
 /*
 -------------------------- STATIC FILES ---------------------------
 */
 
+// Middleware and routes
+app.use(express.static(path.join(__dirname, 'public')));
 // Serve static files for user and admin interfaces
 app.use('/map', express.static(path.join(__dirname, 'public/map')));
 app.use('/map-admin', express.static(path.join(__dirname, 'public/map-admin')));
@@ -159,12 +191,12 @@ app.get('/', (req, res) => {
 });
 
 // Serve the appropriate index.html for the /map route
-app.get('/map/*', (req, res) => {
+app.get('/map', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/map', 'index.html'));
 });
 
 // Serve the appropriate index.html for the /map-admin route
-app.get('/map-admin/*', (req, res) => {
+app.get('/map-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/map-admin', 'index.html'));
 });
 
