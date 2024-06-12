@@ -31,9 +31,12 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, 'public/icons');
     // Ensure the directory exists
-    fs.mkdir(uploadPath, { recursive: true })
-      .then(() => cb(null, uploadPath))
-      .catch(err => cb(err));
+    fs.mkdir(uploadPath, { recursive: true }, (err) => {
+      if (err) {
+        return cb(err);
+      }
+      cb(null, uploadPath);
+    });
   },
   filename: function (req, file, cb) {
     const iconFilename = req.body.iconPath || file.originalname;
