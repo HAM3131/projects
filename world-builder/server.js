@@ -3,6 +3,7 @@ const cors = require('cors');
 const mariadb = require('mariadb');
 const multer = require('multer');
 const fs = require('fs');
+const fsp = require('fs').promises;
 const http = require('http');
 const https = require('https');
 const path = require('path');
@@ -218,7 +219,7 @@ app.put('/api/icon/remove', async (req, res) => {
     conn.release();
 
     // Remove the file
-    await fs.rm(`public/icons/${icon_path}`);
+    await fsp.rm(`public/icons/${icon_path}`);
     res.status(200).send('Icon removed successfully');
   } catch (err) {
     res.status(500).send(err.message);
