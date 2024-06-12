@@ -16,11 +16,11 @@ const HexMap = () => {
       .catch(error => console.error('Error fetching hex data:', error));
   }, []);
 
-  const fetchHistory = (hex_x, hex_y, hex_id, date_id) => {
-    axios.get(`/api/history?hex-x=${hex_x}&hex-y=${hex_y}&date=${date_id}`)
+  const fetchHistory = (hex) => {
+    axios.get(`/api/history?hex-x=${hex.x}&hex-y=${hex.y}&date=${hex.date_id}`)
       .then(response => {
         setHistory(response.data);
-        setSelectedHex({ "id": hex_id, "x": hex_x, "y": hex_y });
+        setSelectedHex({ "id": hex.id, "x": hex.x, "y": hex.y , "name": hex.name});
         document.getElementById('history-element').scrollIntoView({ behavior: 'smooth' });
       })
       .catch(error => console.error('Error fetching history data:', error));
@@ -73,7 +73,7 @@ const HexMap = () => {
                           q={hex.x}
                           r={hex.y}
                           s={-hex.x - hex.y}
-                          onClick={() => fetchHistory(hex.x, hex.y, hex.id, hex.date_id)}
+                          onClick={() => fetchHistory(hex)}
                         >
                           <Text>{hex.x}, {hex.y}</Text>
                         </Hexagon>
@@ -89,7 +89,7 @@ const HexMap = () => {
       <div id="history-element" className="history-element">
         {history ? (
           <>
-            <h2>History for X = {selectedHex['x']}, Y = {selectedHex['y']}</h2>
+            <h2>History of {selectedHex['name']}</h2>
             <div>
               {Object.entries(groupByDateValue(history)).map(([date_value, group]) => (
                 <div key={date_value} className="history-date-group">
