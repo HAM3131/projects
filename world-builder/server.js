@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mariadb = require('mariadb');
+const multer = require('multer');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
