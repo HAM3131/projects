@@ -51,6 +51,21 @@ app.get('/api/hexes', async (req, res) => {
   }
 });
 
+app.get('/api/dates', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(
+     `SELECT * FROM dates
+     `);
+    res.json(rows);
+  } catch (err) {
+    throw err;
+  } finally {
+    if (conn) conn.end();
+  }
+});
+
 app.get('/api/history', async (req, res) => {
   let conn;
   try {
@@ -93,6 +108,11 @@ app.put('/api/history', async (req, res) => {
 // Serve static files for user and admin interfaces
 app.use('/map', express.static(path.join(__dirname, 'public/map')));
 app.use('/map-admin', express.static(path.join(__dirname, 'public/map-admin')));
+
+// Serve /map/ if no path is provided
+app.get('/', (req, res) => {
+  res.redirect('/map/');
+});
 
 // Serve the appropriate index.html for the /map route
 app.get('/map/*', (req, res) => {
