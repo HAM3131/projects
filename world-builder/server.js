@@ -30,15 +30,14 @@ const pool = mariadb.createPool({
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const iconPath = req.body.iconPath;
-    const uploadPath = path.join(__dirname, 'public/icons', iconPath);
-
+    const uploadPath = path.join(__dirname, 'public/icons');
     // Ensure the directory exists
-    fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
+    fs.mkdir(uploadPath, { recursive: true })
+      .then(() => cb(null, uploadPath))
+      .catch(err => cb(err));
   },
   filename: function (req, file, cb) {
-    const iconFilename = path.basename(req.body.iconPath);
+    const iconFilename = req.body.iconPath || file.originalname;
     cb(null, iconFilename);
   }
 });
