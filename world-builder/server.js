@@ -35,13 +35,25 @@ https.createServer(httpsOptions, app).listen(httpsPort, () => {
   console.log(`HTTPS Server started on port ${httpsPort}`);
 });
 
+/*
+-------------------------- API GET REQUESTS ---------------------------
+*/
+
 app.get('/api/hexes', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
     const rows = await conn.query(
-     `SELECT * FROM hex_tiles
-      WHERE date_id = ${req.query['date']}
+     `SELECT ht.*
+      FROM hex_tiles ht
+      JOIN dates d ON ht.date_id = d.id
+      JOIN (
+          SELECT x_value, y_value, MAX(d.id) as max_date_id
+          FROM hex_tiles ht
+          JOIN dates d ON ht.date_id = d.id
+          WHERE d.order < 5
+          GROUP BY x_value, y_value
+      ) subquery ON ht.x_value = subquery.x_value AND ht.y_value = subquery.y_value AND ht.date_id = subquery.max_date_id;
      `);
     res.json(rows);
   } catch (err) {
@@ -86,10 +98,9 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
-
-// MODIFY PUTS FOR:
-//      - CREATE NEW DATE BEFORE/AFTER
-//      - CREATE NEW HISTORY ENTRY
+/*
+-------------------------- API PUT REQUESTS ---------------------------
+*/
 app.put('/api/history', async (req, res) => {
   const { id } = req.params;
   const { history } = req.body;
@@ -104,6 +115,11 @@ app.put('/api/history', async (req, res) => {
     if (conn) conn.end();
   }
 });
+
+
+/*
+-------------------------- STATIC FILES ---------------------------
+*/
 
 // Serve static files for user and admin interfaces
 app.use('/map', express.static(path.join(__dirname, 'public/map')));
