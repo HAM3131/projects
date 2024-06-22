@@ -1,0 +1,20 @@
+/* Save this as styles.css in the output directory or serve it from your web server */
+
+.breadcrumbs {
+    font-family: Arial, sans-serif;
+    margin-bottom: 1em;
+}
+
+.breadcrumb-link {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-current {
+    color: #555;
+    font-weight: bold;
+}

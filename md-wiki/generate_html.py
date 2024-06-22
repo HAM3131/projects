@@ -6,11 +6,9 @@ import shutil
 def convert_md_to_html(md_content):
     return markdown2.markdown(md_content)
 
-def create_hyperlinks(md_content, files, output_dir, current_file):
-    # Generate relative links for each file
+def create_hyperlinks(md_content, files, current_file):
     links = {file_name.replace('_', ' '): f'{file_name}.html' for file_name in [os.path.splitext(f)[0] for f in files]}
     
-    # Remove current file from links
     current_file_name = os.path.splitext(current_file)[0].replace('_', ' ')
     if current_file_name in links:
         del links[current_file_name]
@@ -22,11 +20,35 @@ def create_hyperlinks(md_content, files, output_dir, current_file):
             return f'<a href="{links[text_key]}">{text}</a>'
         return text
     
-    # Match words surrounded by word boundaries
     pattern = re.compile(r'\b(' + '|'.join(re.escape(key) for key in links.keys()) + r')\b', re.IGNORECASE)
     return pattern.sub(replace_link, md_content)
 
-def generate_home_page(directory, files, subdirectories, home_content, output_dir):
+def generate_breadcrumbs(directory, current_file, root_directory):
+    relative_path = os.path.relpath(directory, root_directory)
+    parts = relative_path.split(os.sep)
+    breadcrumbs = [('wiki', os.path.join(os.path.relpath(root_directory, directory), 'home.html'))]  # Start with the root as 'wiki'
+    path = ''
+    for part in parts:
+        if part and part != '.':  # Ignore empty parts (e.g., for root)
+            path = os.path.join(path, part)
+            print(path, "  -  ",directory)
+            breadcrumbs.append((part, os.path.join(os.path.relpath(path, root_directory), 'home.html')))
+    breadcrumbs.append((os.path.splitext(current_file)[0], ''))
+
+    breadcrumb_html = '<nav class="breadcrumbs">'
+    for i, (name, link) in enumerate(breadcrumbs):
+        if link:
+            breadcrumb_html += f'<a href="{link}" class="breadcrumb-link">{name}</a>'
+        else:
+            breadcrumb_html += f'<span class="breadcrumb-current">{name}</span>'
+        if i < len(breadcrumbs) - 1:
+            breadcrumb_html += ' &gt; '
+    breadcrumb_html += '</nav>'
+    print(breadcrumbs)
+
+    return breadcrumb_html
+
+def generate_home_page(directory, files, subdirectories, home_content, output_dir, root_directory):
     table_of_contents = '<ul>'
     for subdir in subdirectories:
         description_file = os.path.join(directory, subdir, 'description.txt')
@@ -36,52 +58,59 @@ def generate_home_page(directory, files, subdirectories, home_content, output_di
             table_of_contents += f'<li><a href="{subdir}/home.html">{description}</a></li>'
         else:
             table_of_contents += f'<li><a href="{subdir}/home.html">{subdir}</a></li>'
-    
+
     for file in files:
         if file != 'home.md':
             file_name = os.path.splitext(file)[0]
             table_of_contents += f'<li><a href="{file_name}.html">{file_name.replace("_", " ")}</a></li>'
     table_of_contents += '</ul>'
-    
-    html_content = convert_md_to_html(home_content) + table_of_contents
+
+    breadcrumbs = generate_breadcrumbs(directory, 'home.md', root_directory)
+    html_content = breadcrumbs + convert_md_to_html(home_content) + table_of_contents
     with open(os.path.join(output_dir, 'home.html'), 'w') as f:
         f.write(html_content)
 
-def process_directory(directory, output_directory):
+def process_directory(directory, output_directory, root_directory):
     files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith('.md')]
     subdirectories = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
-    
+
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
-    
+
     if 'home.md' in files:
         with open(os.path.join(directory, 'home.md'), 'r') as f:
             home_content = f.read()
-        home_content = create_hyperlinks(home_content, files, output_directory, 'home.md')
-        generate_home_page(directory, files, subdirectories, home_content, output_directory)
-    
+        home_content = create_hyperlinks(home_content, files, 'home.md')
+        generate_home_page(directory, files, subdirectories, home_content, output_directory, root_directory)
+
     for file in files:
         if file != 'home.md':
             with open(os.path.join(directory, file), 'r') as f:
                 md_content = f.read()
-            md_content = create_hyperlinks(md_content, files, output_directory, file)
-            html_content = convert_md_to_html(md_content)
+            md_content = create_hyperlinks(md_content, files, file)
+            breadcrumbs = generate_breadcrumbs(directory, file, root_directory)
+            html_content = breadcrumbs + convert_md_to_html(md_content)
             html_file = os.path.join(output_directory, os.path.splitext(file)[0] + '.html')
             with open(html_file, 'w') as f:
                 f.write(html_content)
-    
+
     for subdir in subdirectories:
         subdir_input = os.path.join(directory, subdir)
         subdir_output = os.path.join(output_directory, subdir)
-        process_directory(subdir_input, subdir_output)
+        process_directory(subdir_input, subdir_output, root_directory)
 
 def clear_output_directory(output_directory):
     if os.path.exists(output_directory):
         shutil.rmtree(output_directory)
     os.makedirs(output_directory)
 
+def add_css(source_directory, output_directory):
+    shutil.copyfile(os.path.join(source_directory, 'styles.css'), os.path.join(output_directory, 'styles.css'))
+
 if __name__ == "__main__":
     root_directory = '/home/r0m/projects/md-wiki/md-source'  # Change this to your root input directory
+    html_src_directory = '/home/r0m/projects/md-wiki/html-source' # Change this to your root html source directory
     output_directory = '/home/r0m/projects/md-wiki/html-output'  # Change this to your desired output directory
     clear_output_directory(output_directory)
-    process_directory(root_directory, output_directory)
+    add_css(html_src_directory, output_directory)
+    process_directory(root_directory, output_directory, root_directory)
