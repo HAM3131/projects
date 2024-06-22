@@ -1,14 +1,24 @@
 import os
 import markdown2
+import re
+import shutil
 
 def convert_md_to_html(md_content):
     return markdown2.markdown(md_content)
 
 def create_hyperlinks(md_content, files, output_dir):
-    for file in files:
-        file_name = os.path.splitext(file)[0]
-        md_content = md_content.replace(file_name.replace('_', ' '), f'<a href="{output_dir}/{file_name}.html">{file_name.replace("_", " ")}</a>')
-    return md_content
+    links = {file_name.replace('_', ' '): f'{output_dir}/{file_name}.html' for file_name in [os.path.splitext(f)[0] for f in files]}
+    
+    def replace_link(match):
+        text = match.group(0)
+        text_key = text.strip().lower()
+        if text_key in links:
+            return f'<a href="{links[text_key]}">{text}</a>'
+        return text
+    
+    # Match words surrounded by word boundaries
+    pattern = re.compile(r'\b(' + '|'.join(re.escape(key) for key in links.keys()) + r')\b', re.IGNORECASE)
+    return pattern.sub(replace_link, md_content)
 
 def generate_home_page(directory, files, subdirectories, home_content, output_dir):
     table_of_contents = '<ul>'
@@ -60,7 +70,14 @@ def process_directory(directory, output_directory):
         subdir_output = os.path.join(output_directory, subdir)
         process_directory(subdir_input, subdir_output)
 
+def clear_output_directory(output_directory):
+    if os.path.exists(output_directory):
+        shutil.rmtree(output_directory)
+    os.makedirs(output_directory)
+
 if __name__ == "__main__":
     root_directory = '/home/r0m/projects/md-wiki/md-source'  # Change this to your root input directory
     output_directory = '/home/r0m/projects/md-wiki/html-output'  # Change this to your desired output directory
+    clear_output_directory(output_directory)
     process_directory(root_directory, output_directory)
+    
