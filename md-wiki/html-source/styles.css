@@ -1,8 +1,35 @@
-/* Save this as styles.css in the output directory or serve it from your web server */
-
-.breadcrumbs {
+/* General styles */
+body {
     font-family: Arial, sans-serif;
-    margin-bottom: 1em;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header styles */
+header h1 {
+    text-align: center;
+    background: #333;
+    color: #fff;
+    padding: 20px 0;
+    margin: 0;
+}
+
+/* Breadcrumb styles */
+.breadcrumbs {
+    font-size: 14px;
+    margin: 20px 0;
 }
 
 .breadcrumb-link {
@@ -17,4 +44,52 @@
 .breadcrumb-current {
     color: #555;
     font-weight: bold;
+}
+
+/* Table of contents styles */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    padding: 10px;
+    background: #f4f4f4;
+    margin-bottom: 5px;
+    border-left: 4px solid #3498db;
+}
+
+ul li a {
+    color: #333;
+    text-decoration: none;
+}
+
+ul li a:hover {
+    color: #3498db;
+}
+
+/* Link styles */
+a {
+    color: #3498db;
+}
+
+a:hover {
+    color: #1d6fa5;
+}
+
+/* Code block styles */
+pre {
+    background: #333;
+    color: #fff;
+    padding: 10px;
+    overflow-x: auto;
+}
+
+/* Footer styles */
+footer {
+    text-align: center;
+    padding: 20px 0;
+    background: #333;
+    color: #fff;
+    margin-top: 20px;
 }

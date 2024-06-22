@@ -31,7 +31,6 @@ def generate_breadcrumbs(directory, current_file, root_directory):
     for part in parts:
         if part and part != '.':  # Ignore empty parts (e.g., for root)
             path = os.path.join(path, part)
-            print(path, "  -  ",directory)
             breadcrumbs.append((part, os.path.join(os.path.relpath(path, root_directory), 'home.html')))
     breadcrumbs.append((os.path.splitext(current_file)[0], ''))
 
@@ -44,7 +43,6 @@ def generate_breadcrumbs(directory, current_file, root_directory):
         if i < len(breadcrumbs) - 1:
             breadcrumb_html += ' &gt; '
     breadcrumb_html += '</nav>'
-    print(breadcrumbs)
 
     return breadcrumb_html
 
@@ -66,9 +64,23 @@ def generate_home_page(directory, files, subdirectories, home_content, output_di
     table_of_contents += '</ul>'
 
     breadcrumbs = generate_breadcrumbs(directory, 'home.md', root_directory)
-    html_content = breadcrumbs + convert_md_to_html(home_content) + table_of_contents
+    header = generate_header('home.md', directory, root_directory)
+    html_content = f"<div class='container'>{header + breadcrumbs + convert_md_to_html(home_content) + table_of_contents}</div></body>"
     with open(os.path.join(output_dir, 'home.html'), 'w') as f:
         f.write(html_content)
+
+def generate_header(file_name, current_directory, root_directory):
+    title = os.path.splitext(file_name)[0].replace('_', ' ').title()
+    relative_path_to_root = os.path.relpath(root_directory, current_directory)
+    css_path = os.path.join(relative_path_to_root, 'styles.css').replace(os.sep, '/')
+    header_html = f'''
+    <head>
+        <title>{title}</title>
+        <link rel="stylesheet" type="text/css" href="{css_path}">
+    </head>
+    <body>
+    '''
+    return header_html
 
 def process_directory(directory, output_directory, root_directory):
     files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith('.md')]
@@ -89,7 +101,8 @@ def process_directory(directory, output_directory, root_directory):
                 md_content = f.read()
             md_content = create_hyperlinks(md_content, files, file)
             breadcrumbs = generate_breadcrumbs(directory, file, root_directory)
-            html_content = breadcrumbs + convert_md_to_html(md_content)
+            header = generate_header(file, directory, root_directory)
+            html_content = f"<div class='container'>{header + breadcrumbs + convert_md_to_html(md_content) + '</div></body>'}"
             html_file = os.path.join(output_directory, os.path.splitext(file)[0] + '.html')
             with open(html_file, 'w') as f:
                 f.write(html_content)
