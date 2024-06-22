@@ -53,14 +53,14 @@ def generate_home_page(directory, files, subdirectories, home_content, output_di
         if os.path.exists(description_file):
             with open(description_file, 'r') as f:
                 description = f.read().strip()
-            table_of_contents += f'<li><a href="{subdir}/home.html">{description}</a></li>'
+            table_of_contents += f'<li><a href="{subdir}/home.html"><b>{subdir.title()}</b> - {description}</a></li>'
         else:
-            table_of_contents += f'<li><a href="{subdir}/home.html">{subdir}</a></li>'
+            table_of_contents += f'<li><a href="{subdir}/home.html">{subdir.title()}</a></li>'
 
     for file in files:
         if file != 'home.md':
             file_name = os.path.splitext(file)[0]
-            table_of_contents += f'<li><a href="{file_name}.html">{file_name.replace("_", " ")}</a></li>'
+            table_of_contents += f'<li><a href="{file_name}.html">{file_name.replace("_", " ").title()}</a></li>'
     table_of_contents += '</ul>'
 
     breadcrumbs = generate_breadcrumbs(directory, 'home.md', root_directory)
