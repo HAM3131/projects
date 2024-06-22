@@ -61,6 +61,6 @@ def process_directory(directory, output_directory):
         process_directory(subdir_input, subdir_output)
 
 if __name__ == "__main__":
-    root_directory = '/home/r0m/research'  # Change this to your root input directory
-    output_directory = '/home/r0m/projects/md-wiki/output'  # Change this to your desired output directory
+    root_directory = '/home/r0m/projects/md-wiki/md-source'  # Change this to your root input directory
+    output_directory = '/home/r0m/projects/md-wiki/html-output'  # Change this to your desired output directory
     process_directory(root_directory, output_directory)
