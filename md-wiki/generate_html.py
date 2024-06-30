@@ -84,7 +84,7 @@ def generate_header(file_name, current_directory, root_directory):
 
 def process_directory(directory, output_directory, root_directory):
     files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith('.md')]
-    subdirectories = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
+    subdirectories = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d)) and not d.startswith('.')]
 
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
@@ -121,7 +121,7 @@ def add_css(source_directory, output_directory):
     shutil.copyfile(os.path.join(source_directory, 'styles.css'), os.path.join(output_directory, 'styles.css'))
 
 if __name__ == "__main__":
-    root_directory = '/home/r0m/projects/md-wiki/md-source'  # Change this to your root input directory
+    root_directory = '/home/r0m/research'  # Change this to your root input directory
     html_src_directory = '/home/r0m/projects/md-wiki/html-source' # Change this to your root html source directory
     output_directory = '/home/r0m/projects/md-wiki/html-output'  # Change this to your desired output directory
     clear_output_directory(output_directory)
