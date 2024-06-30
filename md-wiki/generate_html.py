@@ -112,18 +112,29 @@ def process_directory(directory, output_directory, root_directory):
         subdir_output = os.path.join(output_directory, subdir)
         process_directory(subdir_input, subdir_output, root_directory)
 
-def clear_output_directory(output_directory):
-    if os.path.exists(output_directory):
-        shutil.rmtree(output_directory)
-    os.makedirs(output_directory)
+def clear_directory(directory):
+    """
+    Deletes all files and subdirectories from the specified directory.
+
+    :param directory: The path to the directory to be cleared.
+    """
+    for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print(f'Failed to delete {file_path}. Reason: {e}')
 
 def add_css(source_directory, output_directory):
     shutil.copyfile(os.path.join(source_directory, 'styles.css'), os.path.join(output_directory, 'styles.css'))
 
 if __name__ == "__main__":
-    root_directory = '/home/r0m/research'  # Change this to your root input directory
+    root_directory = '/home/r0m/notes'  # Change this to your root input directory
     html_src_directory = '/home/r0m/projects/md-wiki/html-source' # Change this to your root html source directory
-    output_directory = '/home/r0m/projects/md-wiki/html-output'  # Change this to your desired output directory
-    clear_output_directory(output_directory)
+    output_directory = '/var/www/myfiles'  # Change this to your desired output directory
+    clear_directory(output_directory)
     add_css(html_src_directory, output_directory)
     process_directory(root_directory, output_directory, root_directory)
