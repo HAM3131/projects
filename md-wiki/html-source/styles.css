@@ -56,24 +56,24 @@ header h1 {
 
 /* Table of contents styles */
 ul {
-    list-style: none;
-    padding: 0;
+    list-style-type: disc; /* Use standard bullet points */
+    padding-left: 40px;    /* Add padding to indent the list */
+    margin-bottom: 20px;   /* Add space below the list */
 }
 
 ul li {
-    padding: 10px;
-    background: #f4f4f4;
-    margin-bottom: 5px;
-    border-left: 4px solid #3498db;
+    margin-bottom: 10px;   /* Add space between list items */
+    line-height: 1.5;      /* Improve readability */
 }
 
 ul li a {
-    color: #333;
-    text-decoration: none;
+    color: #3498db;        /* Link color */
+    text-decoration: none; /* Remove underline from links */
 }
 
 ul li a:hover {
-    color: #3498db;
+    text-decoration: underline; /* Underline on hover */
+    color: #1d6fa5;             /* Darker color on hover */
 }
 
 /* Link styles */
