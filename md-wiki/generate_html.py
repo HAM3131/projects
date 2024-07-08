@@ -6,20 +6,26 @@ import shutil
 def convert_md_to_html(md_content):
     return markdown2.markdown(md_content)
 
-def create_hyperlinks(md_content, files, current_file):
-    links = {file_name.replace('_', ' '): f'{file_name}.html' for file_name in [os.path.splitext(f)[0] for f in files]}
-    
-    current_file_name = os.path.splitext(current_file)[0].replace('_', ' ')
-    if current_file_name in links:
-        del links[current_file_name]
-    
+def create_hyperlinks(md_content, files, current_file, current_directory, root_directory):
+    links = {}
+    for dirpath, _, filenames in os.walk(root_directory):
+        for filename in filenames:
+            if filename.endswith('.md'):
+                file_key = filename.replace('_', ' ').replace('.md', '').lower()
+                relative_path = os.path.relpath(os.path.join(dirpath, filename), current_directory).replace(os.sep, '/')
+                links[file_key] = relative_path.replace('.md', '.html')
+
+    current_file_key = os.path.splitext(current_file)[0].replace('_', ' ').lower()
+    if current_file_key in links:
+        del links[current_file_key]
+
     def replace_link(match):
         text = match.group(0)
         text_key = text.strip().lower()
         if text_key in links:
             return f'<a href="{links[text_key]}">{text}</a>'
         return text
-    
+
     pattern = re.compile(r'\b(' + '|'.join(re.escape(key) for key in links.keys()) + r')\b', re.IGNORECASE)
     return pattern.sub(replace_link, md_content)
 
@@ -27,11 +33,11 @@ def generate_breadcrumbs(directory, current_file, root_directory):
     relative_path = os.path.relpath(directory, root_directory)
     parts = relative_path.split(os.sep)
     breadcrumbs = [('wiki', os.path.join(os.path.relpath(root_directory, directory), 'home.html'))]  # Start with the root as 'wiki'
-    path = ''
+    path = root_directory
     for part in parts:
         if part and part != '.':  # Ignore empty parts (e.g., for root)
             path = os.path.join(path, part)
-            breadcrumbs.append((part, os.path.join(os.path.relpath(path, root_directory), 'home.html')))
+            breadcrumbs.append((part, os.path.join(os.path.relpath(path, directory), 'home.html')))
     breadcrumbs.append((os.path.splitext(current_file)[0], ''))
 
     breadcrumb_html = '<nav class="breadcrumbs">'
@@ -46,19 +52,20 @@ def generate_breadcrumbs(directory, current_file, root_directory):
 
     return breadcrumb_html
 
-def generate_home_page(directory, files, subdirectories, home_content, output_dir, root_directory):
+def generate_home_page(directory, files, subdirectories, home_content, output_dir, root_directory, ignore_list):
     table_of_contents = '<ul>'
     for subdir in subdirectories:
-        description_file = os.path.join(directory, subdir, 'description.txt')
-        if os.path.exists(description_file):
-            with open(description_file, 'r') as f:
-                description = f.read().strip()
-            table_of_contents += f'<li><a href="{subdir}/home.html"><b>{subdir.title()}</b> - {description}</a></li>'
-        else:
-            table_of_contents += f'<li><a href="{subdir}/home.html">{subdir.title()}</a></li>'
+        if subdir not in ignore_list:
+            description_file = os.path.join(directory, subdir, 'description.txt')
+            if os.path.exists(description_file):
+                with open(description_file, 'r') as f:
+                    description = f.read().strip()
+                table_of_contents += f'<li><a href="{subdir}/home.html"><b>{subdir.title()}</b> - {description}</a></li>'
+            else:
+                table_of_contents += f'<li><a href="{subdir}/home.html">{subdir.title()}</a></li>'
 
     for file in files:
-        if file != 'home.md':
+        if file != 'home.md' and file not in ignore_list:
             file_name = os.path.splitext(file)[0]
             table_of_contents += f'<li><a href="{file_name}.html">{file_name.replace("_", " ").title()}</a></li>'
     table_of_contents += '</ul>'
@@ -82,9 +89,19 @@ def generate_header(file_name, current_directory, root_directory):
     '''
     return header_html
 
+def read_ignore_list(directory):
+    ignore_file = os.path.join(directory, 'ignore.txt')
+    if os.path.exists(ignore_file):
+        with open(ignore_file, 'r') as f:
+            ignore_list = f.read().splitlines()
+        return ignore_list
+    return []
+
 def process_directory(directory, output_directory, root_directory):
-    files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith('.md')]
-    subdirectories = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d)) and not d.startswith('.')]
+    ignore_list = read_ignore_list(directory)
+
+    files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith('.md') and f not in ignore_list]
+    subdirectories = [d for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d)) and not d.startswith('.') and d not in ignore_list]
 
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
@@ -92,14 +109,14 @@ def process_directory(directory, output_directory, root_directory):
     if 'home.md' in files:
         with open(os.path.join(directory, 'home.md'), 'r') as f:
             home_content = f.read()
-        home_content = create_hyperlinks(home_content, files, 'home.md')
-        generate_home_page(directory, files, subdirectories, home_content, output_directory, root_directory)
+        home_content = create_hyperlinks(home_content, files, 'home.md', directory, root_directory)
+        generate_home_page(directory, files, subdirectories, home_content, output_directory, root_directory, ignore_list)
 
     for file in files:
         if file != 'home.md':
             with open(os.path.join(directory, file), 'r') as f:
                 md_content = f.read()
-            md_content = create_hyperlinks(md_content, files, file)
+            md_content = create_hyperlinks(md_content, files, file, directory, root_directory)
             breadcrumbs = generate_breadcrumbs(directory, file, root_directory)
             header = generate_header(file, directory, root_directory)
             html_content = f"<div class='container'>{header + breadcrumbs + convert_md_to_html(md_content) + '</div></body>'}"
