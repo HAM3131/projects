@@ -4,22 +4,33 @@ import re
 import shutil
 
 def convert_md_to_html(md_content):
+    """
+    Converts Markdown content to HTML using the markdown2 library.
+    """
     return markdown2.markdown(md_content)
 
 def create_hyperlinks(md_content, files, current_file, current_directory, root_directory):
+    """
+    Converts plain text references to other Markdown files into hyperlinks in the given Markdown content.
+    """
     links = {}
     for dirpath, _, filenames in os.walk(root_directory):
         for filename in filenames:
             if filename.endswith('.md'):
+                # Create a dictionary of {file_name_without_extension: relative_path_to_html_file}
                 file_key = filename.replace('_', ' ').replace('.md', '').lower()
                 relative_path = os.path.relpath(os.path.join(dirpath, filename), current_directory).replace(os.sep, '/')
                 links[file_key] = relative_path.replace('.md', '.html')
 
+    # Remove current file from links to avoid self-referencing
     current_file_key = os.path.splitext(current_file)[0].replace('_', ' ').lower()
     if current_file_key in links:
         del links[current_file_key]
 
     def replace_link(match):
+        """
+        Replace plain text references with HTML hyperlinks.
+        """
         text = match.group(0)
         text_key = text.strip().lower()
         if text_key in links:
@@ -30,6 +41,9 @@ def create_hyperlinks(md_content, files, current_file, current_directory, root_d
     return pattern.sub(replace_link, md_content)
 
 def generate_breadcrumbs(directory, current_file, root_directory):
+    """
+    Generates HTML for breadcrumb navigation based on the directory structure.
+    """
     relative_path = os.path.relpath(directory, root_directory)
     parts = relative_path.split(os.sep)
     breadcrumbs = [('wiki', os.path.join(os.path.relpath(root_directory, directory), 'home.html'))]  # Start with the root as 'wiki'
@@ -52,6 +66,9 @@ def generate_breadcrumbs(directory, current_file, root_directory):
     return breadcrumb_html
 
 def generate_toc(md_content):
+    """
+    Generates a Table of Contents (TOC) with numbered entries for each header in the Markdown content.
+    """
     headers = re.findall(r'^(#{1,6})\s+(.*)', md_content, re.MULTILINE)
     toc = []
     header_counters = [0] * 6  # Support up to 6 levels of headers
@@ -79,6 +96,9 @@ def generate_toc(md_content):
     return '\n'.join(toc)
 
 def add_anchors(md_content):
+    """
+    Adds HTML anchor tags to headers in the Markdown content for linking.
+    """
     def anchor_replacer(match):
         header_level = match.group(1)
         header_text = match.group(2)
@@ -89,6 +109,9 @@ def add_anchors(md_content):
     return md_content
 
 def generate_html_from_template(template_path, page_title, css_path, breadcrumbs, content, sub_pages, toc):
+    """
+    Generates HTML content by filling in a template with the given parameters.
+    """
     with open(template_path, 'r') as template_file:
         template = template_file.read()
 
@@ -102,6 +125,9 @@ def generate_html_from_template(template_path, page_title, css_path, breadcrumbs
     return html_content
 
 def generate_home_page(directory, files, subdirectories, home_content, output_dir, root_directory, ignore_list, template_path):
+    """
+    Generates the home page for a directory including links to subdirectories and other Markdown files.
+    """
     sub_pages = '<ul>'
     for subdir in subdirectories:
         if subdir not in ignore_list:
@@ -129,6 +155,9 @@ def generate_home_page(directory, files, subdirectories, home_content, output_di
         f.write(html_content)
 
 def read_ignore_list(directory):
+    """
+    Reads a list of files and directories to ignore from an 'ignore.txt' file in the given directory.
+    """
     ignore_file = os.path.join(directory, 'ignore.txt')
     if os.path.exists(ignore_file):
         with open(ignore_file, 'r') as f:
@@ -137,6 +166,9 @@ def read_ignore_list(directory):
     return []
 
 def process_directory(directory, output_directory, root_directory, template_path):
+    """
+    Processes a directory to convert all Markdown files to HTML and generates the necessary HTML files for navigation.
+    """
     ignore_list = read_ignore_list(directory)
 
     files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith('.md') and f not in ignore_list]
@@ -175,8 +207,6 @@ def process_directory(directory, output_directory, root_directory, template_path
 def clear_directory(directory):
     """
     Deletes all files and subdirectories from the specified directory.
-
-    :param directory: The path to the directory to be cleared.
     """
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
@@ -189,6 +219,9 @@ def clear_directory(directory):
             print(f'Failed to delete {file_path}. Reason: {e}')
 
 def add_css(source_directory, output_directory):
+    """
+    Copies the CSS file from the source directory to the output directory.
+    """
     shutil.copyfile(os.path.join(source_directory, 'styles.css'), os.path.join(output_directory, 'styles.css'))
 
 if __name__ == "__main__":
