@@ -11,8 +11,16 @@
         {{BREADCRUMBS}}
     </nav>
     <div class="container">
-        {{CONTENT}}
-        {{TABLE_OF_CONTENTS}}
+        <aside class="sidebar">
+            <h2>Table of Contents</h2>
+            <ul>
+                {{TOC}}
+            </ul>
+        </aside>
+        <main class="content">
+            {{CONTENT}}
+            {{SUB_PAGES}}
+        </main>
     </div>
     <footer>
         &copy; 2024 Henry Manning

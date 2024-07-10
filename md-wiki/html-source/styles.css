@@ -17,27 +17,49 @@ body {
 
 /* Container styles */
 .container {
-    width: 80%;
-    margin: auto;
-    padding: 20px;
-    background: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    flex: 1; /* This allows the container to expand and take available space */
+    display: flex;
+    flex: 1;
+    margin: 0 20px; /* Reduce margin on left and right */
 }
 
-/* Header styles */
-header h1 {
-    text-align: center;
-    background: #333;
-    color: #fff;
-    padding: 20px 0;
-    margin: 0;
+.content {
+    flex: 1;
+    padding: 20px;
+}
+
+.sidebar {
+    width: 250px;
+    padding: 20px;
+    background: #f4f4f4;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    height: fit-content; /* Ensure it doesn't collide with the footer */
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    margin-bottom: 10px;
+}
+
+.sidebar ul li a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.sidebar ul li a:hover {
+    text-decoration: underline;
 }
 
 /* Breadcrumb styles */
 .breadcrumbs {
     font-size: 14px;
     margin: 20px 0;
+    padding-left: 20px; /* Add padding to the left */
 }
 
 .breadcrumb-link {
@@ -52,28 +74,6 @@ header h1 {
 .breadcrumb-current {
     color: #555;
     font-weight: bold;
-}
-
-/* Table of contents styles */
-ul {
-    list-style-type: disc; /* Use standard bullet points */
-    padding-left: 40px;    /* Add padding to indent the list */
-    margin-bottom: 20px;   /* Add space below the list */
-}
-
-ul li {
-    margin-bottom: 10px;   /* Add space between list items */
-    line-height: 1.5;      /* Improve readability */
-}
-
-ul li a {
-    color: #3498db;        /* Link color */
-    text-decoration: none; /* Remove underline from links */
-}
-
-ul li a:hover {
-    text-decoration: underline; /* Underline on hover */
-    color: #1d6fa5;             /* Darker color on hover */
 }
 
 /* Link styles */
@@ -96,8 +96,7 @@ pre {
 /* Footer styles */
 footer {
     text-align: center;
-    padding: 20px 0;
+    padding: 20px;
     background: #333;
     color: #fff;
-    margin-top: 20px;
 }
