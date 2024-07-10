@@ -40,7 +40,7 @@ def generate_breadcrumbs(directory, current_file, root_directory):
             breadcrumbs.append((part, os.path.join(os.path.relpath(path, directory), 'home.html')))
     breadcrumbs.append((os.path.splitext(current_file)[0], ''))
 
-    breadcrumb_html = '<nav class="breadcrumbs">'
+    breadcrumb_html = ''
     for i, (name, link) in enumerate(breadcrumbs):
         if link:
             breadcrumb_html += f'<a href="{link}" class="breadcrumb-link">{name}</a>'
@@ -48,11 +48,22 @@ def generate_breadcrumbs(directory, current_file, root_directory):
             breadcrumb_html += f'<span class="breadcrumb-current">{name}</span>'
         if i < len(breadcrumbs) - 1:
             breadcrumb_html += ' &gt; '
-    breadcrumb_html += '</nav>'
 
     return breadcrumb_html
 
-def generate_home_page(directory, files, subdirectories, home_content, output_dir, root_directory, ignore_list):
+def generate_html_from_template(template_path, page_title, css_path, breadcrumbs, content, table_of_contents):
+    with open(template_path, 'r') as template_file:
+        template = template_file.read()
+
+    html_content = template.replace('{{PAGE_TITLE}}', page_title)
+    html_content = html_content.replace('{{CSS_PATH}}', css_path)
+    html_content = html_content.replace('{{BREADCRUMBS}}', breadcrumbs)
+    html_content = html_content.replace('{{CONTENT}}', content)
+    html_content = html_content.replace('{{TABLE_OF_CONTENTS}}', table_of_contents)
+
+    return html_content
+
+def generate_home_page(directory, files, subdirectories, home_content, output_dir, root_directory, ignore_list, template_path):
     table_of_contents = '<ul>'
     for subdir in subdirectories:
         if subdir not in ignore_list:
@@ -71,8 +82,10 @@ def generate_home_page(directory, files, subdirectories, home_content, output_di
     table_of_contents += '</ul>'
 
     breadcrumbs = generate_breadcrumbs(directory, 'home.md', root_directory)
-    header = generate_header('home.md', directory, root_directory)
-    html_content = f"<div class='container'>{header + breadcrumbs + convert_md_to_html(home_content) + table_of_contents}</div></body>"
+    content = convert_md_to_html(home_content)
+    css_path = os.path.relpath(os.path.join(root_directory, 'styles.css'), directory).replace(os.sep, '/')
+    html_content = generate_html_from_template(template_path, 'Home', css_path, breadcrumbs, content, table_of_contents)
+
     with open(os.path.join(output_dir, 'home.html'), 'w') as f:
         f.write(html_content)
 
@@ -97,7 +110,7 @@ def read_ignore_list(directory):
         return ignore_list
     return []
 
-def process_directory(directory, output_directory, root_directory):
+def process_directory(directory, output_directory, root_directory, template_path):
     ignore_list = read_ignore_list(directory)
 
     files = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and f.endswith('.md') and f not in ignore_list]
@@ -110,7 +123,7 @@ def process_directory(directory, output_directory, root_directory):
         with open(os.path.join(directory, 'home.md'), 'r') as f:
             home_content = f.read()
         home_content = create_hyperlinks(home_content, files, 'home.md', directory, root_directory)
-        generate_home_page(directory, files, subdirectories, home_content, output_directory, root_directory, ignore_list)
+        generate_home_page(directory, files, subdirectories, home_content, output_directory, root_directory, ignore_list, template_path)
 
     for file in files:
         if file != 'home.md':
@@ -118,8 +131,10 @@ def process_directory(directory, output_directory, root_directory):
                 md_content = f.read()
             md_content = create_hyperlinks(md_content, files, file, directory, root_directory)
             breadcrumbs = generate_breadcrumbs(directory, file, root_directory)
-            header = generate_header(file, directory, root_directory)
-            html_content = f"<div class='container'>{header + breadcrumbs + convert_md_to_html(md_content) + '</div></body>'}"
+            content = convert_md_to_html(md_content)
+            page_title = os.path.splitext(file)[0].replace('_', ' ').title()
+            css_path = os.path.relpath(os.path.join(root_directory, 'styles.css'), directory).replace(os.sep, '/')
+            html_content = generate_html_from_template(template_path, page_title, css_path, breadcrumbs, content, '')
             html_file = os.path.join(output_directory, os.path.splitext(file)[0] + '.html')
             with open(html_file, 'w') as f:
                 f.write(html_content)
@@ -127,7 +142,7 @@ def process_directory(directory, output_directory, root_directory):
     for subdir in subdirectories:
         subdir_input = os.path.join(directory, subdir)
         subdir_output = os.path.join(output_directory, subdir)
-        process_directory(subdir_input, subdir_output, root_directory)
+        process_directory(subdir_input, subdir_output, root_directory, template_path)
 
 def clear_directory(directory):
     """
@@ -152,6 +167,7 @@ if __name__ == "__main__":
     root_directory = '/home/r0m/notes'  # Change this to your root input directory
     html_src_directory = '/home/r0m/projects/md-wiki/html-source' # Change this to your root html source directory
     output_directory = '/var/www/myfiles'  # Change this to your desired output directory
+    template_path = os.path.join(html_src_directory, 'template.html')
     clear_directory(output_directory)
     add_css(html_src_directory, output_directory)
-    process_directory(root_directory, output_directory, root_directory)
+    process_directory(root_directory, output_directory, root_directory, template_path)
