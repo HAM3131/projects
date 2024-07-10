@@ -2,6 +2,8 @@ import os
 import markdown2
 import re
 import shutil
+import pwd
+import time
 
 def convert_md_to_html(md_content):
     """
@@ -108,7 +110,7 @@ def add_anchors(md_content):
     md_content = re.sub(r'^(#{1,6})\s+(.*)', anchor_replacer, md_content, flags=re.MULTILINE)
     return md_content
 
-def generate_html_from_template(template_path, page_title, css_path, breadcrumbs, content, sub_pages, toc):
+def generate_html_from_template(template_path, page_title, css_path, breadcrumbs, content, sub_pages, toc, last_mod_time, username):
     """
     Generates HTML content by filling in a template with the given parameters.
     """
@@ -121,6 +123,8 @@ def generate_html_from_template(template_path, page_title, css_path, breadcrumbs
     html_content = html_content.replace('{{CONTENT}}', content)
     html_content = html_content.replace('{{SUB_PAGES}}', sub_pages)
     html_content = html_content.replace('{{TOC}}', toc)
+    html_content = html_content.replace('{{LAST_MOD_TIME}}', last_mod_time)
+    html_content = html_content.replace('{{USERNAME}}', username)
 
     return html_content
 
@@ -149,10 +153,31 @@ def generate_home_page(directory, files, subdirectories, home_content, output_di
     content = convert_md_to_html(home_content)
     toc = generate_toc(home_content)
     css_path = os.path.relpath(os.path.join(root_directory, 'styles.css'), directory).replace(os.sep, '/')
-    html_content = generate_html_from_template(template_path, 'Home', css_path, breadcrumbs, content, sub_pages, toc)
+    last_mod_time, username = get_file_info(os.path.join(directory, 'home.md'))
+    html_content = generate_html_from_template(template_path, 'Home', css_path, breadcrumbs, content, sub_pages, toc, last_mod_time, username)
 
     with open(os.path.join(output_dir, 'home.html'), 'w') as f:
         f.write(html_content)
+
+def get_file_info(file_path):
+    """
+    Get the last modification time and the user who last modified the file.
+    """
+    try:
+        # Get file status
+        file_stat = os.stat(file_path)
+        
+        # Get last modification time
+        last_mod_time = time.ctime(file_stat.st_mtime)
+        
+        # Get user ID and username
+        user_id = file_stat.st_uid
+        username = pwd.getpwuid(user_id).pw_name
+        
+        return last_mod_time, username
+    except Exception as e:
+        print(f"Error retrieving file information for {file_path}: {e}")
+        return None, None
 
 def read_ignore_list(directory):
     """
@@ -194,7 +219,8 @@ def process_directory(directory, output_directory, root_directory, template_path
             content = convert_md_to_html(md_content)
             page_title = os.path.splitext(file)[0].replace('_', ' ').title()
             css_path = os.path.relpath(os.path.join(root_directory, 'styles.css'), directory).replace(os.sep, '/')
-            html_content = generate_html_from_template(template_path, page_title, css_path, breadcrumbs, content, '', toc)
+            last_mod_time, username = get_file_info(os.path.join(directory, file))
+            html_content = generate_html_from_template(template_path, page_title, css_path, breadcrumbs, content, '', toc, last_mod_time, username)
             html_file = os.path.join(output_directory, os.path.splitext(file)[0] + '.html')
             with open(html_file, 'w') as f:
                 f.write(html_content)
