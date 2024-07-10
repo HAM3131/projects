@@ -54,11 +54,28 @@ def generate_breadcrumbs(directory, current_file, root_directory):
 def generate_toc(md_content):
     headers = re.findall(r'^(#{1,6})\s+(.*)', md_content, re.MULTILINE)
     toc = []
+    header_counters = [0] * 6  # Support up to 6 levels of headers
+
     for header in headers:
-        level = len(header[0])
+        level = len(header[0]) - 1  # 0-based index
+        if level == 0:
+            level = 1  # Treating # and ## headers the same
         title = header[1]
         anchor = re.sub(r'\s+', '-', title.lower())
-        toc.append(f'<li style="margin-left: {level * 10}px;"><a href="#{anchor}">{title}</a></li>')
+        
+        # Increment the current level counter
+        header_counters[level] += 1
+        
+        # Reset lower level counters
+        for i in range(level + 1, 6):
+            header_counters[i] = 0
+        
+        # Build the numbering string
+        numbering = ".".join(str(num) for num in header_counters[:level + 1] if num > 0)
+        
+        # Append the TOC item
+        toc.append(f'<li style="margin-left: {level * 10}px;">{numbering} <a href="#{anchor}">{title}</a></li>')
+
     return '\n'.join(toc)
 
 def add_anchors(md_content):
